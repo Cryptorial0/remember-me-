@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Remember Me?</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Remember Me?</h1>
+  <form id="f">
+    <input id="title" placeholder="Remind me about..." autocomplete="off" required>
+    <div class="row">
+      <input id="when" type="datetime-local" required>
+      <select id="repeat">
+        <option value="none">No repeat</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+      </select>
+    </div>
+    <div class="chips">
+      <button type="button" data-m="10">+10m</button>
+      <button type="button" data-m="60">+1h</button>
+      <button type="button" data-m="tom">Tomorrow 9:00</button>
+    </div>
+    <button class="primary" type="submit">Add reminder</button>
+  </form>
+  <ul id="list"></ul>
+  <script src="app.js"></script>
+</body>
+</html>
