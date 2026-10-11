@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Remember Me?</title>
+<style>
+  html, body { margin:0; background:transparent; overflow:hidden; font:13px system-ui,sans-serif; }
+  body { padding:8px; }
+  .card { display:flex; gap:10px; background:#1e2028; color:#e8e9ee; border-radius:14px; padding:12px;
+          border:1px solid #7c6cf0; box-shadow:0 6px 18px rgba(0,0,0,.45);
+          animation: slide .45s cubic-bezier(.2,.9,.3,1.2), glow 1.6s ease-in-out 3; }
+  .bell { font-size:26px; animation: ring 1s ease-in-out 3; transform-origin:50% 10%; }
+  .body { flex:1; min-width:0; }
+  .h { font-size:11px; color:#8b8fa3; margin-bottom:2px; }
+  .t { font-weight:600; font-size:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+       overflow:hidden; word-break:break-word; margin-bottom:8px; }
+  .b { display:flex; gap:6px; }
+  button { padding:4px 9px; border-radius:7px; border:1px solid #3a3d4c; background:#2a2d38; color:#e8e9ee; cursor:pointer; font:inherit; font-size:12px; }
+  button.p { background:#7c6cf0; border-color:#7c6cf0; color:#fff; }
+  @keyframes slide { from { transform:translateX(120%); opacity:0; } to { transform:none; opacity:1; } }
+  @keyframes ring { 0%,100%{transform:rotate(0)} 20%{transform:rotate(18deg)} 40%{transform:rotate(-16deg)} 60%{transform:rotate(10deg)} 80%{transform:rotate(-6deg)} }
+  @keyframes glow { 0%,100%{box-shadow:0 6px 18px rgba(0,0,0,.45)} 50%{box-shadow:0 0 22px 3px rgba(124,108,240,.75)} }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="bell">🔔</div>
+    <div class="body">
+      <div class="h">Remember Me?</div>
+      <div class="t" id="t"></div>
+      <div class="b">
+        <button class="p" id="done">Done</button>
+        <button id="s10">Snooze 10m</button>
+        <button id="x">Dismiss</button>
+      </div>
+    </div>
+  </div>
+<script src="sound.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

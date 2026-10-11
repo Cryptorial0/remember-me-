@@ -67,3 +67,40 @@ listen('changed', refresh);
 setDefaultTime();
 refresh();
 setInterval(refresh, 30000);
+
+// ---------- settings ----------
+const sSound = $('s-sound'), sVol = $('s-vol'), sRep = $('s-rep'), sFile = $('s-file'), sName = $('s-fname'), sAuto = $('s-auto');
+
+async function loadSettings() {
+  const s = await invoke('get_settings');
+  sSound.value = s.sound || 'chime';
+  sVol.value = s.volume || '0.6';
+  sRep.value = s.repeats || '3';
+  sName.textContent = s.custom_name || 'none';
+  sAuto.checked = s.autostart !== '0';
+}
+sSound.onchange = () => invoke('set_setting', { key: 'sound', value: sSound.value });
+sVol.onchange = () => invoke('set_setting', { key: 'volume', value: sVol.value });
+sRep.onchange = () => {
+  const n = Math.max(1, Math.min(10, parseInt(sRep.value) || 1));
+  sRep.value = n;
+  invoke('set_setting', { key: 'repeats', value: String(n) });
+};
+sAuto.onchange = () => invoke('set_autostart', { enabled: sAuto.checked }).catch((e) => alert(e));
+sFile.onchange = async () => {
+  const f = sFile.files[0];
+  if (!f) return;
+  if (f.size > 2 * 1024 * 1024) { alert('File too big (max 2 MB).'); sFile.value = ''; return; }
+  const url = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(f); });
+  await invoke('set_setting', { key: 'custom_sound', value: url });
+  await invoke('set_setting', { key: 'custom_name', value: f.name });
+  await invoke('set_setting', { key: 'sound', value: 'custom' });
+  sSound.value = 'custom';
+  sName.textContent = f.name;
+};
+$('s-test').onclick = async () => {
+  let url = null;
+  if (sSound.value === 'custom') url = await invoke('get_custom_sound');
+  Sound.play(sSound.value, parseFloat(sVol.value), url);
+};
+loadSettings();

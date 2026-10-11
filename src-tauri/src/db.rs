@@ -1,4 +1,4 @@
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use serde::Serialize;
 use std::path::Path;
 use std::sync::Mutex;
@@ -26,7 +26,8 @@ impl Db {
                 repeat  TEXT    NOT NULL DEFAULT 'none',
                 done    INTEGER NOT NULL DEFAULT 0,
                 fired   INTEGER NOT NULL DEFAULT 0
-            );",
+            );
+            CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
         )?;
         Ok(Db(Mutex::new(conn)))
     }
@@ -79,6 +80,29 @@ impl Db {
         c.execute(
             "UPDATE reminders SET due = ?1, fired = 0, done = 0 WHERE id = ?2",
             params![new_due, id],
+        )?;
+        Ok(())
+    }
+
+    pub fn settings(&self) -> rusqlite::Result<Vec<(String, String)>> {
+        let c = self.0.lock().unwrap();
+        let mut s = c.prepare("SELECT key, value FROM settings")?;
+        let rows = s.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?;
+        rows.collect()
+    }
+
+    pub fn get_setting(&self, key: &str) -> rusqlite::Result<Option<String>> {
+        let c = self.0.lock().unwrap();
+        c.query_row("SELECT value FROM settings WHERE key = ?1", params![key], |r| r.get(0))
+            .optional()
+    }
+
+    pub fn set_setting(&self, key: &str, value: &str) -> rusqlite::Result<()> {
+        let c = self.0.lock().unwrap();
+        c.execute(
+            "INSERT INTO settings (key, value) VALUES (?1, ?2)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            params![key, value],
         )?;
         Ok(())
     }
