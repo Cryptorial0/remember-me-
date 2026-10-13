@@ -15,6 +15,7 @@
         <option value="none">No repeat</option>
         <option value="daily">Daily</option>
         <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
       </select>
     </div>
     <div class="chips">
@@ -22,31 +23,48 @@
       <button type="button" data-m="60">+1h</button>
       <button type="button" data-m="tom">Tomorrow 9:00</button>
     </div>
-    <button class="primary" type="submit">Add reminder</button>
+    <div class="row">
+      <button class="primary" id="save" type="submit" style="flex:1">Add reminder</button>
+      <button type="button" id="cancel" hidden>Cancel edit</button>
+    </div>
   </form>
   <details id="settings">
     <summary>Settings</summary>
+    <label>Hotkey (click the box, then press the keys)
+      <input id="s-hotkey" readonly>
+    </label>
     <label>Sound
       <select id="s-sound">
+        <option value="none">Silent</option>
         <option value="chime">Chime</option>
         <option value="bell">Bell</option>
         <option value="beep">Beep</option>
         <option value="digital">Digital</option>
         <option value="soft">Soft</option>
-        <option value="custom">My own file</option>
-        <option value="none">Silent</option>
+        <option value="custom">Upload a file</option>
       </select>
     </label>
     <label>Volume <input id="s-vol" type="range" min="0" max="1" step="0.05"></label>
-    <label>Repeat sound <input id="s-rep" type="number" min="1" max="10" style="width:60px"> times (every 10s)</label>
-    <label>Own sound file (mp3/wav/ogg, max 2 MB)
+    <label>Repeat sound <input id="s-rep" type="number" min="0" max="10" style="width:60px"> times, every 6s (0 = until dismissed)</label>
+    <label>Upload a file (mp3/wav/ogg, max 2 MB)
       <input id="s-file" type="file" accept="audio/*">
     </label>
     <div class="d">Current file: <span id="s-fname">none</span></div>
     <label class="inline"><input id="s-auto" type="checkbox"> Start with the computer</label>
-    <button type="button" id="s-test">Test sound</button>
+    <div class="btns"><button type="button" id="s-test">Test sound</button><button type="button" id="s-stop">Stop</button></div>
   </details>
   <ul id="list"></ul>
+
+  <div id="quit" class="overlay" hidden>
+    <div class="modal">
+      <p>Reminders stop while the app is quit.<br>Quit anyway?</p>
+      <div class="btns">
+        <button id="q-yes" class="primary">Quit</button>
+        <button id="q-no">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="sound.js"></script>
   <script src="app.js"></script>
 </body>

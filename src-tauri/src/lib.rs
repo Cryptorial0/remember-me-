@@ -20,6 +20,14 @@ fn show_main(app: &AppHandle) {
     }
 }
 
+fn ask_quit(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
+        let _ = app.emit("confirm-quit", ());
+    }
+}
 
 fn enc(s: &str) -> String {
     let mut o = String::new();
@@ -33,7 +41,37 @@ fn enc(s: &str) -> String {
     o
 }
 
-/// Small always-on-top popup at the bottom-left of the primary monitor.
+/// Right and bottom edge (physical pixels) of the primary monitor's work area,
+/// i.e. the screen minus the taskbar wherever it is docked.
+#[cfg(windows)]
+fn work_area() -> Option<(f64, f64)> {
+    #[repr(C)]
+    struct Rect {
+        left: i32,
+        top: i32,
+        right: i32,
+        bottom: i32,
+    }
+    #[link(name = "user32")]
+    extern "system" {
+        fn SystemParametersInfoW(a: u32, b: u32, c: *mut std::ffi::c_void, d: u32) -> i32;
+    }
+    let mut r = Rect { left: 0, top: 0, right: 0, bottom: 0 };
+    // SPI_GETWORKAREA = 0x0030
+    let ok = unsafe { SystemParametersInfoW(0x0030, 0, &mut r as *mut Rect as *mut std::ffi::c_void, 0) };
+    if ok != 0 && r.right > r.left && r.bottom > r.top {
+        Some((r.right as f64, r.bottom as f64))
+    } else {
+        None
+    }
+}
+
+#[cfg(not(windows))]
+fn work_area() -> Option<(f64, f64)> {
+    None
+}
+
+/// Small always-on-top popup in the bottom-right corner of the work area.
 fn open_popup(app: &AppHandle, id: i64, title: String) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
@@ -50,10 +88,11 @@ fn open_popup(app: &AppHandle, id: i64, title: String) {
                 let sc = m.scale_factor();
                 let p = m.position();
                 let sz = m.size();
-                (
-                    p.x as f64 / sc + sz.width as f64 / sc - w - 4.0,
-                    (p.y as f64 + sz.height as f64) / sc - h - 64.0 - n * (h + 6.0),
-                )
+                let (right, bottom) = work_area().unwrap_or((
+                    p.x as f64 + sz.width as f64,
+                    p.y as f64 + sz.height as f64 - 64.0 * sc,
+                ));
+                (right / sc - w - 4.0, bottom / sc - h - 8.0 - n * (h + 6.0))
             }
             _ => (12.0, 500.0),
         };
@@ -75,13 +114,34 @@ fn open_popup(app: &AppHandle, id: i64, title: String) {
                 "--autoplay-policy=no-user-gesture-required --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection",
             );
         }
-        let _ = b.build();
+        if let Ok(win) = b.build() {
+            // Re-assert "always on top" a few times: a fullscreen app that
+            // activates right after the popup appears can push it behind.
+            let _ = win.set_always_on_top(true);
+            std::thread::spawn(move || {
+                for _ in 0..4 {
+                    std::thread::sleep(Duration::from_millis(500));
+                    let _ = win.set_always_on_top(true);
+                }
+            });
+        }
     });
 }
 
 #[tauri::command]
 fn add_reminder(db: tauri::State<Db>, title: String, due: i64, repeat: String) -> Result<(), String> {
     db.add(title.trim(), due, &repeat).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn update_reminder(
+    db: tauri::State<Db>,
+    id: i64,
+    title: String,
+    due: i64,
+    repeat: String,
+) -> Result<(), String> {
+    db.update(id, title.trim(), due, &repeat).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -106,6 +166,11 @@ fn snooze(app: AppHandle, db: tauri::State<Db>, id: i64, minutes: i64) -> Result
     db.snooze(id, now() + minutes * 60).map_err(|e| e.to_string())?;
     let _ = app.emit("changed", ());
     Ok(())
+}
+
+#[tauri::command]
+fn close_popup(window: tauri::Window) {
+    let _ = window.destroy();
 }
 
 #[tauri::command]
@@ -139,8 +204,38 @@ fn set_autostart(app: AppHandle, db: tauri::State<Db>, enabled: bool) -> Result<
 }
 
 #[tauri::command]
-fn close_popup(window: tauri::Window) {
-    let _ = window.destroy();
+fn set_hotkey(app: AppHandle, db: tauri::State<Db>, hotkey: String) -> Result<(), String> {
+    use std::str::FromStr;
+    use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+
+    let lower = hotkey.to_lowercase();
+    if !(lower.contains("ctrl") || lower.contains("alt")) {
+        return Err("Include Ctrl or Alt.".into());
+    }
+    let new = Shortcut::from_str(&hotkey).map_err(|e| e.to_string())?;
+    let gs = app.global_shortcut();
+    let old = db
+        .get_setting("hotkey")
+        .ok()
+        .flatten()
+        .unwrap_or_else(|| "Alt+X".into());
+    let old_sc = Shortcut::from_str(&old).ok();
+    if let Some(o) = old_sc.clone() {
+        let _ = gs.unregister(o);
+    }
+    if let Err(e) = gs.register(new) {
+        // Keep the old hotkey working if the new one is taken.
+        if let Some(o) = old_sc {
+            let _ = gs.register(o);
+        }
+        return Err(format!("{} (probably used by another app)", e));
+    }
+    db.set_setting("hotkey", &hotkey).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    app.exit(0);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -173,6 +268,7 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![
             add_reminder,
+            update_reminder,
             list_reminders,
             delete_reminder,
             toggle_done,
@@ -181,7 +277,9 @@ pub fn run() {
             get_settings,
             set_setting,
             get_custom_sound,
-            set_autostart
+            set_autostart,
+            set_hotkey,
+            quit_app
         ])
         .on_window_event(|window, event| {
             // Close button hides to tray instead of quitting.
@@ -199,6 +297,7 @@ pub fn run() {
 
             #[cfg(desktop)]
             {
+                use std::str::FromStr;
                 use tauri::{
                     menu::{Menu, MenuItem},
                     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -221,11 +320,16 @@ pub fn run() {
                     let _ = auto.disable();
                 }
 
-                // Global hotkey: Alt+X (may fail silently on Wayland).
-                let _ = app.global_shortcut().register(Shortcut::new(
-                    Some(Modifiers::ALT),
-                    Code::KeyX,
-                ));
+                // Global hotkey from settings (default Alt+X). May fail silently on Wayland.
+                let hk = app
+                    .state::<Db>()
+                    .get_setting("hotkey")
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| "Alt+X".into());
+                let sc = Shortcut::from_str(&hk)
+                    .unwrap_or_else(|_| Shortcut::new(Some(Modifiers::ALT), Code::KeyX));
+                let _ = app.global_shortcut().register(sc);
 
                 // Tray.
                 let show = MenuItem::with_id(app, "show", "Open Remember Me?", true, None::<&str>)?;
@@ -237,7 +341,7 @@ pub fn run() {
                     .menu(&menu)
                     .on_menu_event(|app, ev| match ev.id.as_ref() {
                         "show" => show_main(app),
-                        "quit" => app.exit(0),
+                        "quit" => ask_quit(app),
                         _ => {}
                     })
                     .on_tray_icon_event(|tray, ev| {
@@ -260,7 +364,9 @@ pub fn run() {
             #[cfg(not(desktop))]
             show_main(app.handle());
 
-            // Scheduler: checks every 5s, opens bottom-left popups.
+            // Scheduler: checks every 5s and opens bottom-right popups.
+            // It also re-asserts "always on top" for open popups, because Windows
+            // can push them behind when another app goes fullscreen.
             let handle = app.handle().clone();
             std::thread::spawn(move || loop {
                 let due = handle.state::<Db>().take_due(now());
@@ -270,6 +376,11 @@ pub fn run() {
                             open_popup(&handle, id, title);
                         }
                         let _ = handle.emit("changed", ());
+                    }
+                }
+                for (label, w) in handle.webview_windows() {
+                    if label.starts_with("popup-") {
+                        let _ = w.set_always_on_top(true);
                     }
                 }
                 std::thread::sleep(Duration::from_secs(5));

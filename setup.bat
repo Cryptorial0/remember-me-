@@ -25,11 +25,11 @@ if errorlevel 1 winget install -e --id Rustlang.Rustup --accept-source-agreement
 set "PATH=%PATH%;%USERPROFILE%\.cargo\bin"
 
 echo.
-echo [3/6] Visual Studio Build Tools (C++)  - big download, accept the admin prompt
+echo [3/6] Minimal C++ build tools (linker + Windows SDK) - accept the admin prompt
 set "VSW=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 set "HAVEVS="
 if exist "%VSW%" for /f "usebackq delims=" %%i in (`"%VSW%" -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "HAVEVS=%%i"
-if not defined HAVEVS winget install -e --id Microsoft.VisualStudio.2022.BuildTools --accept-source-agreements --accept-package-agreements --override "--wait --passive --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+if not defined HAVEVS winget install -e --id Microsoft.VisualStudio.2022.BuildTools --accept-source-agreements --accept-package-agreements --override "--wait --passive --norestart --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.22621"
 
 echo.
 echo [4/6] WebView2 runtime

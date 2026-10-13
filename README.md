@@ -1,22 +1,58 @@
-# Remember Me?  (desktop core)
+# Remember Me?
 
-## Easiest (Windows)
-Double-click setup.bat (run once)
-It installs Node.js, Rust, VS Build Tools (C++) and WebView2 with winget, builds
-the app, and creates Remember-Me-Setup.exe in this folder. Run that exe to install.
-Accept the admin (UAC) prompts. First run takes a long time (several GB).
+A small, private reminder app. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
 
-## Manual (Windows)
-Prerequisites: Rust (rustup.rs), Node.js LTS, VS Build Tools "Desktop development with C++", WebView2.
+**Status:** Windows app ready. Linux builds come from the same code. Browser extension (Chrome, Brave, Firefox) and Android are next.
 
-    npm install
-    npm run tauri icon app-icon.png     # once
-    npm run tauri dev                   # test
-    npm run tauri build                 # installer in src-tauri/target/release/bundle/
+## Features
+- Reminders with date/time and repeat (none, daily, weekly, monthly)
+- Edit, Done, Snooze 10m / 1h, Delete
+- Popup in the bottom-right corner with sound and a small animation; stays on top
+- Sound settings: Silent, Chime, Bell, Beep, Digital, Soft, or upload your own file; volume; repeat; test and stop buttons
+- Global hotkey (default **Alt+X**) to open the app; change it in Settings
+- Runs in the system tray, starts with your computer (can be turned off), asks before quitting
+- Local SQLite database
+- Searchable as **RM**: the installer adds a second Start-menu entry named "RM", so typing `rm` finds it
 
-## Use
-- Alt+X: open quick-add
-- Settings panel: sound, volume, repeats, own sound file, start-with-computer
-- Close button hides to tray. Tray menu -> Quit to exit.
-- Starts on login, hidden in tray.
-- DB: reminders.db in the app data folder (com.rememberme.app).
+## Get the installer (no build tools needed)
+GitHub builds it for you.
+
+**Easiest: a Release with download links**
+1. Push this repo to GitHub.
+2. In a terminal inside the project, run:
+   ```
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+3. Wait 10-15 minutes, then open the repo's **Releases** page (right side of the repo home page).
+4. Download `Remember Me_0.1.0_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
+
+For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.1`, ...).
+
+**Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
+
+## Build it yourself (Windows)
+Double-click **`setup.bat`**. It installs Node.js, Rust and the C++ build tools with winget, builds the app, and creates `Remember-Me-Setup.exe` in this folder. The first run takes a while.
+
+Manual way (tools already installed):
+```
+npm install
+npm run tauri icon app-icon.png
+npm run tauri dev       # test
+npm run tauri build     # installer in src-tauri/target/release/bundle/
+```
+
+## Using it
+- Closing the window hides it to the tray. Reminders keep working.
+- Tray icon: click to open, right-click for Quit. Fully quitting stops reminders until you start it again.
+- Where your data is: `%APPDATA%\com.rememberme.app\reminders.db` (Windows), `~/.local/share/com.rememberme.app/` (Linux).
+
+## Known limits
+- The popup can't draw over games in true exclusive fullscreen. The sound still plays.
+- On Linux Wayland, global hotkeys may not work; use the tray icon.
+- Windows can't have `?` in file names, so installer and shortcut are named "Remember Me".
+
+## Roadmap
+1. Browser extension (Chrome, Brave, Firefox) talking to the app over a local-only address
+2. Linux testing and packaging
+3. Android

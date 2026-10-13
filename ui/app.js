@@ -6,8 +6,30 @@ const pad = (n) => String(n).padStart(2, '0');
 const toInput = (d) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
+let editingId = null;
+
 function setDefaultTime() {
   $('when').value = toInput(new Date(Date.now() + 10 * 60000));
+}
+
+function resetForm() {
+  editingId = null;
+  $('title').value = '';
+  $('repeat').value = 'none';
+  $('save').textContent = 'Add reminder';
+  $('cancel').hidden = true;
+  setDefaultTime();
+}
+
+function startEdit(r) {
+  editingId = r.id;
+  $('title').value = r.title;
+  $('when').value = toInput(new Date(r.due * 1000));
+  $('repeat').value = r.repeat;
+  $('save').textContent = 'Save changes';
+  $('cancel').hidden = false;
+  window.scrollTo(0, 0);
+  $('title').focus();
 }
 
 document.querySelectorAll('.chips button').forEach((b) =>
@@ -20,13 +42,15 @@ document.querySelectorAll('.chips button').forEach((b) =>
   })
 );
 
+$('cancel').onclick = resetForm;
+
 $('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const due = Math.floor(new Date($('when').value).getTime() / 1000);
-  await invoke('add_reminder', { title: $('title').value, due, repeat: $('repeat').value });
-  $('title').value = '';
-  $('repeat').value = 'none';
-  setDefaultTime();
+  const args = { title: $('title').value, due, repeat: $('repeat').value };
+  if (editingId !== null) await invoke('update_reminder', { id: editingId, ...args });
+  else await invoke('add_reminder', args);
+  resetForm();
   $('title').focus();
   refresh();
 });
@@ -51,8 +75,12 @@ async function refresh() {
     const d = document.createElement('div'); d.className = 'd';
     d.textContent = new Date(r.due * 1000).toLocaleString() + (r.repeat !== 'none' ? '  ·  ' + r.repeat : '');
     const bs = document.createElement('div'); bs.className = 'btns';
+    const edit = document.createElement('button');
+    edit.textContent = 'Edit';
+    edit.onclick = () => startEdit(r);
     bs.append(
       btn(r.done ? 'Undo' : 'Done', () => invoke('toggle_done', { id: r.id })),
+      edit,
       btn('Snooze 10m', () => invoke('snooze', { id: r.id, minutes: 10 })),
       btn('Snooze 1h', () => invoke('snooze', { id: r.id, minutes: 60 })),
       btn('Delete', () => invoke('delete_reminder', { id: r.id }))
@@ -62,27 +90,24 @@ async function refresh() {
   }
 }
 
-listen('quick-add', () => { setDefaultTime(); $('title').focus(); $('title').select(); refresh(); });
-listen('changed', refresh);
-setDefaultTime();
-refresh();
-setInterval(refresh, 30000);
-
 // ---------- settings ----------
-const sSound = $('s-sound'), sVol = $('s-vol'), sRep = $('s-rep'), sFile = $('s-file'), sName = $('s-fname'), sAuto = $('s-auto');
+const sSound = $('s-sound'), sVol = $('s-vol'), sRep = $('s-rep'), sFile = $('s-file'),
+      sName = $('s-fname'), sAuto = $('s-auto'), sHot = $('s-hotkey');
 
 async function loadSettings() {
   const s = await invoke('get_settings');
   sSound.value = s.sound || 'chime';
   sVol.value = s.volume || '0.6';
-  sRep.value = s.repeats || '3';
+  sRep.value = s.repeats ?? '0';
   sName.textContent = s.custom_name || 'none';
   sAuto.checked = s.autostart !== '0';
+  sHot.value = s.hotkey || 'Alt+X';
 }
 sSound.onchange = () => invoke('set_setting', { key: 'sound', value: sSound.value });
 sVol.onchange = () => invoke('set_setting', { key: 'volume', value: sVol.value });
 sRep.onchange = () => {
-  const n = Math.max(1, Math.min(10, parseInt(sRep.value) || 1));
+  const v = parseInt(sRep.value);
+  const n = isNaN(v) ? 0 : Math.max(0, Math.min(10, v));
   sRep.value = n;
   invoke('set_setting', { key: 'repeats', value: String(n) });
 };
@@ -103,4 +128,49 @@ $('s-test').onclick = async () => {
   if (sSound.value === 'custom') url = await invoke('get_custom_sound');
   Sound.play(sSound.value, parseFloat(sVol.value), url);
 };
+$('s-stop').onclick = () => Sound.stop();
+
+// hotkey capture
+function keyName(code) {
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+  if (/^F([1-9]|1[0-2])$/.test(code)) return code;
+  const m = { Space: 'Space', ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right' };
+  return m[code] || null;
+}
+sHot.addEventListener('keydown', async (e) => {
+  e.preventDefault();
+  if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return;
+  const k = keyName(e.code);
+  if (!k) { alert('Use a letter, number, F1-F12, Space or an arrow key.'); return; }
+  if (!(e.ctrlKey || e.altKey)) { alert('Include Ctrl or Alt (for example Alt+X).'); return; }
+  const mods = [];
+  if (e.ctrlKey) mods.push('Ctrl');
+  if (e.altKey) mods.push('Alt');
+  if (e.shiftKey) mods.push('Shift');
+  const combo = [...mods, k].join('+');
+  try {
+    await invoke('set_hotkey', { hotkey: combo });
+    sHot.value = combo;
+  } catch (err) {
+    alert('Could not use ' + combo + ': ' + err);
+  }
+});
+
+// ---------- quit confirmation ----------
+listen('confirm-quit', () => { $('quit').hidden = false; });
+$('q-no').onclick = () => { $('quit').hidden = true; };
+$('q-yes').onclick = () => invoke('quit_app');
+
+listen('quick-add', () => {
+  if (editingId === null) setDefaultTime();
+  $('title').focus();
+  $('title').select();
+  refresh();
+});
+listen('changed', refresh);
+
+setDefaultTime();
+refresh();
 loadSettings();
+setInterval(refresh, 30000);
