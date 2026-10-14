@@ -31,6 +31,9 @@ For a new version, change the version in `src-tauri/tauri.conf.json`, then tag a
 
 **Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
 
+## Browser companion (optional)
+Adds right-click "Remind me about this", "Read this page later" (the link is saved and opens from the popup), and quick-add from the toolbar, in Chrome, Brave, Edge and Firefox. It needs the app installed and running. Folders and install steps: `browser-extension/README.md`.
+
 ## Build it yourself (Windows)
 Double-click **`setup.bat`**. It installs Node.js, Rust and the C++ build tools with winget, builds the app, and creates `Remember-Me-Setup.exe` in this folder. The first run takes a while.
 
@@ -53,6 +56,5 @@ npm run tauri build     # installer in src-tauri/target/release/bundle/
 - Windows can't have `?` in file names, so installer and shortcut are named "Remember Me".
 
 ## Roadmap
-1. Browser extension (Chrome, Brave, Firefox) talking to the app over a local-only address
-2. Linux testing and packaging
-3. Android
+1. Linux testing and packaging
+2. Android

@@ -15,6 +15,7 @@ function setDefaultTime() {
 function resetForm() {
   editingId = null;
   $('title').value = '';
+  $('link').value = '';
   $('repeat').value = 'none';
   $('save').textContent = 'Add reminder';
   $('cancel').hidden = true;
@@ -24,6 +25,7 @@ function resetForm() {
 function startEdit(r) {
   editingId = r.id;
   $('title').value = r.title;
+  $('link').value = r.link || '';
   $('when').value = toInput(new Date(r.due * 1000));
   $('repeat').value = r.repeat;
   $('save').textContent = 'Save changes';
@@ -47,7 +49,7 @@ $('cancel').onclick = resetForm;
 $('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const due = Math.floor(new Date($('when').value).getTime() / 1000);
-  const args = { title: $('title').value, due, repeat: $('repeat').value };
+  const args = { title: $('title').value, due, repeat: $('repeat').value, link: $('link').value.trim() };
   if (editingId !== null) await invoke('update_reminder', { id: editingId, ...args });
   else await invoke('add_reminder', args);
   resetForm();
@@ -85,6 +87,7 @@ async function refresh() {
       btn('Snooze 1h', () => invoke('snooze', { id: r.id, minutes: 60 })),
       btn('Delete', () => invoke('delete_reminder', { id: r.id }))
     );
+    if (r.link) bs.prepend(btn('Open link', () => invoke('open_link', { url: r.link })));
     li.append(t, d, bs);
     ul.append(li);
   }
@@ -101,6 +104,8 @@ async function loadSettings() {
   sRep.value = s.repeats ?? '0';
   sName.textContent = s.custom_name || 'none';
   sAuto.checked = s.autostart !== '0';
+  $('s-port').textContent = s.api_port || 'starting...';
+  $('s-token').value = s.api_token || '';
   sHot.value = s.hotkey || 'Alt+X';
 }
 sSound.onchange = () => invoke('set_setting', { key: 'sound', value: sSound.value });
@@ -174,3 +179,10 @@ setDefaultTime();
 refresh();
 loadSettings();
 setInterval(refresh, 30000);
+
+$('s-copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('s-token').value); $('s-copy').textContent = 'Copied'; }
+  catch (e) { $('s-token').select(); }
+  setTimeout(() => { $('s-copy').textContent = 'Copy token'; }, 1500);
+};
+$('settings').addEventListener('toggle', () => { if ($('settings').open) loadSettings(); });

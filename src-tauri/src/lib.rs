@@ -1,3 +1,5 @@
+mod api;
+mod api_core;
 mod db;
 
 use db::{Db, Reminder};
@@ -72,7 +74,7 @@ fn work_area() -> Option<(f64, f64)> {
 }
 
 /// Small always-on-top popup in the bottom-right corner of the work area.
-fn open_popup(app: &AppHandle, id: i64, title: String) {
+fn open_popup(app: &AppHandle, id: i64, title: String, link: String) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
         let (w, h) = (360.0_f64, 130.0_f64);
@@ -82,7 +84,7 @@ fn open_popup(app: &AppHandle, id: i64, title: String) {
             .filter(|k| k.starts_with("popup-"))
             .count() as f64;
         let label = format!("popup-{}-{}", id, now());
-        let url = format!("popup.html?id={}&title={}", id, enc(&title));
+        let url = format!("popup.html?id={}&title={}&link={}", id, enc(&title), enc(&link));
         let (x, y) = match handle.primary_monitor() {
             Ok(Some(m)) => {
                 let sc = m.scale_factor();
@@ -129,8 +131,28 @@ fn open_popup(app: &AppHandle, id: i64, title: String) {
 }
 
 #[tauri::command]
-fn add_reminder(db: tauri::State<Db>, title: String, due: i64, repeat: String) -> Result<(), String> {
-    db.add(title.trim(), due, &repeat).map_err(|e| e.to_string())
+fn add_reminder(
+    db: tauri::State<Db>,
+    title: String,
+    due: i64,
+    repeat: String,
+    link: Option<String>,
+) -> Result<(), String> {
+    db.add_with_link(title.trim(), due, &repeat, &link.unwrap_or_default())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn open_link(url: String) -> Result<(), String> {
+    let u = db::clean_link(&url);
+    if u.is_empty() {
+        return Err("not a valid http(s) link".into());
+    }
+    #[cfg(windows)]
+    let r = std::process::Command::new("explorer.exe").arg(&u).spawn();
+    #[cfg(not(windows))]
+    let r = std::process::Command::new("xdg-open").arg(&u).spawn();
+    r.map(|_| ()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -140,8 +162,13 @@ fn update_reminder(
     title: String,
     due: i64,
     repeat: String,
+    link: Option<String>,
 ) -> Result<(), String> {
-    db.update(id, title.trim(), due, &repeat).map_err(|e| e.to_string())
+    db.update(id, title.trim(), due, &repeat).map_err(|e| e.to_string())?;
+    if let Some(l) = link {
+        db.set_link(id, &l).map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -268,6 +295,7 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![
             add_reminder,
+            open_link,
             update_reminder,
             list_reminders,
             delete_reminder,
@@ -294,6 +322,7 @@ pub fn run() {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             app.manage(Db::open(&dir.join("reminders.db"))?);
+            api::start(app.handle().clone());
 
             #[cfg(desktop)]
             {
@@ -373,7 +402,8 @@ pub fn run() {
                 if let Ok(items) = due {
                     if !items.is_empty() {
                         for (id, title) in items {
-                            open_popup(&handle, id, title);
+                            let link = handle.state::<Db>().get_link(id).unwrap_or_default();
+                            open_popup(&handle, id, title, link);
                         }
                         let _ = handle.emit("changed", ());
                     }

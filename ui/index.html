@@ -9,6 +9,7 @@
   <h1>Remember Me?</h1>
   <form id="f">
     <input id="title" placeholder="Remind me about..." autocomplete="off" required>
+    <input id="link" placeholder="Link (optional, https://...)" autocomplete="off">
     <div class="row">
       <input id="when" type="datetime-local" required>
       <select id="repeat">
@@ -50,6 +51,10 @@
       <input id="s-file" type="file" accept="audio/*">
     </label>
     <div class="d">Current file: <span id="s-fname">none</span></div>
+    <label>Browser extension: port <b id="s-port">-</b>, secret token
+      <input id="s-token" readonly>
+    </label>
+    <button type="button" id="s-copy">Copy token</button>
     <label class="inline"><input id="s-auto" type="checkbox"> Start with the computer</label>
     <div class="btns"><button type="button" id="s-test">Test sound</button><button type="button" id="s-stop">Stop</button></div>
   </details>

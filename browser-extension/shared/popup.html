@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Remember Me?</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="popup">
+  <div id="status" hidden>
+    <p id="status-text"></p>
+    <button id="status-btn" class="primary"></button>
+  </div>
+  <div id="main" hidden>
+    <h1>Remember Me?</h1>
+    <div class="later">
+      <span>Read this page later:</span>
+      <div class="chips">
+        <button type="button" data-later="1h">In 1 hour</button>
+        <button type="button" data-later="tonight">Tonight 8 pm</button>
+        <button type="button" data-later="tomorrow">Tomorrow 9 am</button>
+      </div>
+    </div>
+    <hr>
+    <form id="f">
+      <input id="title" placeholder="Remind me about..." autocomplete="off" required>
+      <input id="link" placeholder="Link (optional)" autocomplete="off">
+      <div class="row">
+        <input id="when" type="datetime-local" required>
+        <select id="repeat">
+          <option value="none">No repeat</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="chips">
+        <button type="button" data-m="10">+10m</button>
+        <button type="button" data-m="60">+1h</button>
+        <button type="button" data-m="tonight">Tonight 8 pm</button>
+        <button type="button" data-m="tomorrow">Tomorrow 9 am</button>
+      </div>
+      <button class="primary" type="submit">Save reminder</button>
+    </form>
+    <div id="msg"></div>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -14,6 +14,16 @@ pub struct Reminder {
     pub repeat: String, // none | daily | weekly | monthly
     pub done: bool,
     pub fired: bool,
+    pub link: String, // optional http(s) link, "" if none
+}
+
+/// Only plain http(s) links are kept; anything else becomes "".
+pub fn clean_link(s: &str) -> String {
+    let t = s.trim();
+    let ok = (t.starts_with("http://") || t.starts_with("https://"))
+        && t.len() <= 2000
+        && !t.chars().any(|c| c.is_whitespace() || c.is_control() || c == '"');
+    if ok { t.to_string() } else { String::new() }
 }
 
 fn clean_repeat(r: &str) -> &str {
@@ -58,16 +68,31 @@ impl Db {
         )?;
         // Older databases lack the anchor column; ignore the error if it already exists.
         let _ = conn.execute("ALTER TABLE reminders ADD COLUMN anchor INTEGER", []);
+        let _ = conn.execute("ALTER TABLE reminders ADD COLUMN link TEXT", []);
         Ok(Db(Mutex::new(conn)))
     }
 
-    pub fn add(&self, title: &str, due: i64, repeat: &str) -> rusqlite::Result<()> {
+    pub fn add_with_link(&self, title: &str, due: i64, repeat: &str, link: &str) -> rusqlite::Result<()> {
         let c = self.0.lock().unwrap();
         c.execute(
-            "INSERT INTO reminders (title, due, repeat, anchor) VALUES (?1, ?2, ?3, ?2)",
-            params![title, due, clean_repeat(repeat)],
+            "INSERT INTO reminders (title, due, repeat, anchor, link) VALUES (?1, ?2, ?3, ?2, ?4)",
+            params![title, due, clean_repeat(repeat), clean_link(link)],
         )?;
         Ok(())
+    }
+
+    pub fn set_link(&self, id: i64, link: &str) -> rusqlite::Result<()> {
+        let c = self.0.lock().unwrap();
+        c.execute("UPDATE reminders SET link = ?1 WHERE id = ?2", params![clean_link(link), id])?;
+        Ok(())
+    }
+
+    pub fn get_link(&self, id: i64) -> rusqlite::Result<String> {
+        let c = self.0.lock().unwrap();
+        let l: Option<Option<String>> = c
+            .query_row("SELECT link FROM reminders WHERE id = ?1", params![id], |r| r.get(0))
+            .optional()?;
+        Ok(l.flatten().unwrap_or_default())
     }
 
     pub fn update(&self, id: i64, title: &str, due: i64, repeat: &str) -> rusqlite::Result<()> {
@@ -83,7 +108,7 @@ impl Db {
     pub fn list(&self) -> rusqlite::Result<Vec<Reminder>> {
         let c = self.0.lock().unwrap();
         let mut s = c.prepare(
-            "SELECT id, title, due, repeat, done, fired FROM reminders ORDER BY done, due",
+            "SELECT id, title, due, repeat, done, fired, COALESCE(link, '') FROM reminders ORDER BY done, due",
         )?;
         let rows = s.query_map([], |r| {
             Ok(Reminder {
@@ -93,6 +118,7 @@ impl Db {
                 repeat: r.get(3)?,
                 done: r.get::<_, i64>(4)? != 0,
                 fired: r.get::<_, i64>(5)? != 0,
+                link: r.get(6)?,
             })
         })?;
         rows.collect()
@@ -124,6 +150,12 @@ impl Db {
         let mut s = c.prepare("SELECT key, value FROM settings")?;
         let rows = s.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?;
         rows.collect()
+    }
+
+    /// 32 hex chars from SQLite's random generator (used for the browser API token).
+    pub fn random_token(&self) -> rusqlite::Result<String> {
+        let c = self.0.lock().unwrap();
+        c.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0))
     }
 
     pub fn get_setting(&self, key: &str) -> rusqlite::Result<Option<String>> {

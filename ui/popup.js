@@ -25,6 +25,13 @@ let stopped = false;
   go();
 })();
 
+const link = q.get('link') || '';
+if (link) {
+  const o = document.getElementById('o');
+  o.hidden = false;
+  o.onclick = () => invoke('open_link', { url: link });
+}
+
 const close = () => invoke('close_popup');
 document.getElementById('done').onclick = async () => { await invoke('toggle_done', { id }); close(); };
 document.getElementById('s10').onclick = async () => { await invoke('snooze', { id, minutes: 10 }); close(); };

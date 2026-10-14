@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Remember Me? setup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="options">
+  <h1>Remember Me? browser companion</h1>
+  <p>This extension sends reminders to the <b>Remember Me?</b> desktop app on this computer. Install the app first.</p>
+  <ol>
+    <li>Open the Remember Me? app.</li>
+    <li>Go to <b>Settings</b> &rarr; <b>Browser extension</b> and press <b>Copy token</b>.</li>
+    <li>Paste it below and press <b>Save and test</b>.</li>
+  </ol>
+  <input id="token" placeholder="Paste the secret token here" autocomplete="off" spellcheck="false">
+  <button id="save" class="primary">Save and test</button>
+  <p id="result"></p>
+  <script type="module" src="options.js"></script>
+</body>
+</html>
