@@ -32,7 +32,14 @@ For a new version, change the version in `src-tauri/tauri.conf.json`, then tag a
 **Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
 
 ## Browser companion (optional)
-Adds right-click "Remind me about this", "Read this page later" (the link is saved and opens from the popup), and quick-add from the toolbar, in Chrome, Brave, Edge and Firefox. It needs the app installed and running. Folders and install steps: `browser-extension/README.md`.
+A small helper for Firefox, Chrome, Brave and Edge that sends reminders from your browser to the app. **The desktop app must be installed and running.**
+
+- Right-click selected text, a link or a page: **Remind me about this**
+- **Read this page later** in one click (in 1 hour, tonight, tomorrow); the link is saved
+- Quick add from the toolbar button or `Alt+Shift+X`
+- When the reminder goes off, the popup has an **Open** button that opens the saved page
+
+Status: Firefox is submitted and awaiting Mozilla's review. A Chrome Web Store listing will come later; until then Chrome, Brave and Edge users install it in developer mode. Step-by-step instructions, setup and troubleshooting are in [`browser-extension/README.md`](browser-extension/README.md). The extension files are attached to every GitHub Release.
 
 ## Build it yourself (Windows)
 Double-click **`setup.bat`**. It installs Node.js, Rust and the C++ build tools with winget, builds the app, and creates `Remember-Me-Setup.exe` in this folder. The first run takes a while.
@@ -56,5 +63,6 @@ npm run tauri build     # installer in src-tauri/target/release/bundle/
 - Windows can't have `?` in file names, so installer and shortcut are named "Remember Me".
 
 ## Roadmap
-1. Linux testing and packaging
-2. Android
+1. Chrome Web Store listing and Firefox approval
+2. Linux testing and packaging
+3. Android
