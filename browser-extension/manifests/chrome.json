@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Remember Me? (browser companion)",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Send reminders and 'read this page later' to the Remember Me? desktop app. Requires the app to be installed.",
   "permissions": ["contextMenus", "storage", "activeTab"],
   "host_permissions": ["http://127.0.0.1/*"],

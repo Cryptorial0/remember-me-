@@ -21,13 +21,13 @@ GitHub builds it for you.
 1. Push this repo to GitHub.
 2. In a terminal inside the project, run:
    ```
-   git tag v0.1.0
-   git push origin v0.1.0
+   git tag v0.1.2
+   git push origin v0.1.2
    ```
 3. Wait 10-15 minutes, then open the repo's **Releases** page (right side of the repo home page).
-4. Download `Remember Me_0.1.0_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
+4. Download `Remember Me_0.1.2_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
 
-For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.1`, ...).
+For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.3`, ...).
 
 **Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
 
