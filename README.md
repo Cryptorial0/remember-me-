@@ -1,8 +1,7 @@
-
 <p align="center">
-  <img width="140" height="140" alt="app-icon-removebg-preview" src="https://github.com/user-attachments/assets/d4ec5d4d-a203-44dd-acfd-552b3affe4ba" />
-
+  <img src="https://github.com/user-attachments/assets/14967e52-6cfb-4ff1-b24a-50e5aa5c1415" alt="Remember Me Icon" width="140" height="140">
 </p>
+  
   
 # Remember Me?
 
