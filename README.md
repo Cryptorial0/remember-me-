@@ -1,3 +1,4 @@
+<img width="1024" height="1024" alt="app-icon" src="https://github.com/user-attachments/assets/14967e52-6cfb-4ff1-b24a-50e5aa5c1415" />
 # Remember Me?
 
 A small private reminder app for Windows and Linux. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
