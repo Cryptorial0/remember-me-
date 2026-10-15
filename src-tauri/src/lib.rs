@@ -109,7 +109,9 @@ fn open_popup(app: &AppHandle, id: i64, title: String, link: String) {
             .always_on_top(true)
             .skip_taskbar(true)
             .resizable(false)
-            .focused(false);
+            .focused(false)
+            // Linux: build hidden, set the window type, then show (the type must be set before mapping).
+            .visible(cfg!(not(target_os = "linux")));
         #[cfg(windows)]
         {
             b = b.additional_browser_args(
@@ -117,6 +119,16 @@ fn open_popup(app: &AppHandle, id: i64, title: String, link: String) {
             );
         }
         if let Ok(win) = b.build() {
+            // Linux: mark it as a floating utility-type window so tiling window
+            // managers (i3, sway, Hyprland, ...) do not stretch it over the screen.
+            #[cfg(target_os = "linux")]
+            {
+                use gtk::prelude::GtkWindowExt;
+                if let Ok(gw) = win.gtk_window() {
+                    gw.set_type_hint(gtk::gdk::WindowTypeHint::Utility);
+                }
+                let _ = win.show();
+            }
             // Re-assert "always on top" a few times: a fullscreen app that
             // activates right after the popup appears can push it behind.
             let _ = win.set_always_on_top(true);

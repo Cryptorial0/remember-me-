@@ -21,13 +21,13 @@ GitHub builds it for you.
 1. Push this repo to GitHub.
 2. In a terminal inside the project, run:
    ```
-   git tag v0.1.2
-   git push origin v0.1.2
+   git tag v0.1.3
+   git push origin v0.1.3
    ```
 3. Wait 10-15 minutes, then open the repo's **Releases** page (right side of the repo home page).
-4. Download `Remember Me_0.1.2_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
+4. Download `Remember Me_0.1.3_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
 
-For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.3`, ...).
+For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.4`, ...).
 
 **Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
 
@@ -57,9 +57,44 @@ npm run tauri build     # installer in src-tauri/target/release/bundle/
 - Tray icon: click to open, right-click for Quit. Fully quitting stops reminders until you start it again.
 - Where your data is: `%APPDATA%\com.rememberme.app\reminders.db` (Windows), `~/.local/share/com.rememberme.app/` (Linux).
 
+## Linux
+Download the file for your distro from the Releases page (64-bit Intel/AMD only). Open a terminal in the folder where you saved it. The file name starts with `Remember` (it may contain a space or a dot, so use the `*` as shown).
+
+**Ubuntu 22.04+, Debian 12+, Linux Mint, Pop!_OS (.deb)**
+```
+sudo apt install ./Remember*.deb
+```
+Remove it: `sudo apt remove remember-me`
+
+**Fedora, openSUSE (.rpm)**
+```
+sudo dnf install ./Remember*.rpm
+```
+Remove it: `sudo dnf remove remember-me`
+
+**Arch, Manjaro, Omarchy and everything else (.AppImage)**
+```
+chmod +x ./Remember*.AppImage
+./Remember*.AppImage
+```
+- Needs the `fuse2` package on Arch (`sudo pacman -S fuse2`). If FUSE is not available, run `./Remember*.AppImage --appimage-extract-and-run`.
+- Remove it by deleting the file.
+
+After a `.deb`/`.rpm` install, start it from your app menu or with the command `remember-me`. If you turned on "Start with the computer", also delete `~/.config/autostart/` entries for Remember Me when you remove it.
+
+Status: the `.deb` was checked by installing and removing it on Ubuntu. The `.rpm` and `.AppImage` commands are not tested yet.
+
+Search for it in your launcher with `rm`, `remember` or `reminder`.
+
+Good to know:
+- **Tray icon:** GNOME hides tray icons unless you install the *AppIndicator* extension (`gnome-shell-extension-appindicator`; Ubuntu includes it). Without it, closing the window hides the app: start it again from your app menu to bring the window back. Reminders keep working.
+- **Hotkey on Wayland:** `Alt+X` may not work. Add a custom keyboard shortcut in your system settings that runs `remember-me` (starting it again just shows the window). On Hyprland/Omarchy, add a line such as `bind = SUPER ALT, R, exec, remember-me` to your Hyprland bindings.
+- **Sound** needs the common GStreamer plugins (`gstreamer1.0-plugins-good`), which most desktops already have.
+- The app starts in X11 (XWayland) mode when available, so the reminder popup can be placed in the corner and stay on top.
+- Tested on a virtual X11 desktop with a normal window manager and with a tiling one (i3). **Not yet tested** on real GNOME, KDE or Hyprland.
+
 ## Known limits
 - The popup can't draw over games in true exclusive fullscreen. The sound still plays.
-- On Linux Wayland, global hotkeys may not work; use the tray icon.
 - Windows can't have `?` in file names, so installer and shortcut are named "Remember Me".
 
 ## Roadmap
