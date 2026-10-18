@@ -65,7 +65,26 @@ jobs:
           mkdir -p dist
           (cd browser-extension/chrome && zip -r ../../dist/remember-me-chrome-extension.zip .)
           (cd browser-extension/firefox && zip -r ../../dist/remember-me-firefox-extension.zip .)
+      - name: Show what will be published
+        run: find dist -type f | sort
+
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          # upload-artifact keeps sub-folders (nsis/, deb/, ...), so search recursively
+          files: |
+            dist/**/*.exe
+            dist/**/*.msi
+            dist/**/*.deb
+            dist/**/*.rpm
+            dist/**/*.AppImage
+            dist/*.zip
           generate_release_notes: true
+
+      # Publish whatever exists, but turn the run red if something is missing.
+      - name: Check that every expected file was built
+        run: |
+          missing=0
+          for p in "*.exe" "*.msi" "*.deb" "*.rpm" "*.AppImage" "remember-me-chrome-extension.zip" "remember-me-firefox-extension.zip"; do
+            if [ -z "$(find dist -name "$p" -print -quit)" ]; then echo "MISSING: $p"; missing=1; fi
+          done
+          exit $missing
