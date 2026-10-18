@@ -1,103 +1,141 @@
 # Remember Me?
 
-A small, private reminder app. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
-
-**Status:** Windows app ready. Linux builds come from the same code. Browser extension (Chrome, Brave, Firefox) and Android are next.
+A small, private reminder app for Windows and Linux. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
 
 ## Features
-- Reminders with date/time and repeat (none, daily, weekly, monthly)
-- Edit, Done, Snooze 10m / 1h, Delete
-- Popup in the bottom-right corner with sound and a small animation; stays on top
-- Sound settings: Silent, Chime, Bell, Beep, Digital, Soft, or upload your own file; volume; repeat; test and stop buttons
+- Reminders with a date, a time, and an optional repeat (daily, weekly, monthly)
+- Optional link on a reminder, with an **Open** button on the popup
+- Edit, mark Done, Snooze (10 minutes or 1 hour), Delete
+- Alert when a reminder is due, with a sound that repeats until you react: a popup in the bottom-right corner on Windows, a system notification on Linux (with Done / Snooze / Open buttons where your desktop supports them)
+- Sound settings: Silent, Chime, Bell, Beep, Digital, Soft, or upload your own file; volume; how many times it repeats; test and stop buttons
 - Global hotkey (default **Alt+X**) to open the app; change it in Settings
-- Runs in the system tray, starts with your computer (can be turned off), asks before quitting
-- Local SQLite database
-- Searchable as **RM**: the installer adds a second Start-menu entry named "RM", so typing `rm` finds it
+- Lives in the system tray, starts with your computer (you can turn this off), asks before quitting
+- Search for it by typing **rm**, **remember** or **reminder** in your Start menu or app launcher
+- Browser companion for Firefox, Chrome, Brave and Edge (optional, see below)
+- Private: your reminders are stored only on your computer
 
-## Get the installer (no build tools needed)
-GitHub builds it for you.
+## Install on Windows (10 and 11)
+1. Open the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and download the file ending in **`x64-setup.exe`** from the newest release.
+2. Double-click it. If Windows shows "Windows protected your PC", click **More info**, then **Run anyway** (the installer is not code-signed yet).
+3. Open **Remember Me** from the Start menu, or press the Windows key and type `rm`.
 
-**Easiest: a Release with download links**
-1. Push this repo to GitHub.
-2. In a terminal inside the project, run:
-   ```
-   git tag v0.1.3
-   git push origin v0.1.3
-   ```
-3. Wait 10-15 minutes, then open the repo's **Releases** page (right side of the repo home page).
-4. Download `Remember Me_0.1.3_x64-setup.exe` (Windows) or the `.deb` / `.rpm` / `.AppImage` (Linux) and run it.
+To update, install the newer `setup.exe` over the old one. Your reminders are kept.
+To remove it: **Settings -> Apps -> Remember Me -> Uninstall**.
 
-For a new version, change the version in `src-tauri/tauri.conf.json`, then tag again (`v0.1.4`, ...).
-
-**Without a tag:** every push to `main` also builds. Open **Actions** -> latest run -> **Artifacts**.
-
-## Browser companion (optional)
-A small helper for Firefox, Chrome, Brave and Edge that sends reminders from your browser to the app. **The desktop app must be installed and running.**
-
-- Right-click selected text, a link or a page: **Remind me about this**
-- **Read this page later** in one click (in 1 hour, tonight, tomorrow); the link is saved
-- Quick add from the toolbar button or `Alt+Shift+X`
-- When the reminder goes off, the popup has an **Open** button that opens the saved page
-
-Status: Firefox is submitted and awaiting Mozilla's review. A Chrome Web Store listing will come later; until then Chrome, Brave and Edge users install it in developer mode. Step-by-step instructions, setup and troubleshooting are in [`browser-extension/README.md`](browser-extension/README.md). The extension files are attached to every GitHub Release.
-
-## Build it yourself (Windows)
-Double-click **`setup.bat`**. It installs Node.js, Rust and the C++ build tools with winget, builds the app, and creates `Remember-Me-Setup.exe` in this folder. The first run takes a while.
-
-Manual way (tools already installed):
+### Install on Windows from the command line
+Open **PowerShell** and run:
+```powershell
+$r = Invoke-RestMethod https://api.github.com/repos/momenkamalx/remember-me-/releases/latest
+$a = $r.assets | Where-Object { $_.name -like "*setup.exe" } | Select-Object -First 1
+Invoke-WebRequest $a.browser_download_url -OutFile Remember-Me-Setup.exe
+Start-Process .\Remember-Me-Setup.exe -ArgumentList "/S" -Wait
 ```
-npm install
-npm run tauri icon app-icon.png
-npm run tauri dev       # test
-npm run tauri build     # installer in src-tauri/target/release/bundle/
+`/S` installs silently. Start it from the Start menu afterwards.
+
+Uninstall from the command line (default per-user install location):
+```powershell
+& "$env:LOCALAPPDATA\Remember Me\uninstall.exe" /S
 ```
 
-## Using it
-- Closing the window hides it to the tray. Reminders keep working.
-- Tray icon: click to open, right-click for Quit. Fully quitting stops reminders until you start it again.
-- Where your data is: `%APPDATA%\com.rememberme.app\reminders.db` (Windows), `~/.local/share/com.rememberme.app/` (Linux).
+## Install on Linux
+You need a 64-bit Intel/AMD computer. Supported: Ubuntu 22.04+, Debian 12+, Linux Mint, Pop!_OS, Fedora, openSUSE, Arch, Manjaro, Omarchy and most other mainstream distros. Very old distros (for example Ubuntu 20.04) and ARM computers (such as a Raspberry Pi) are not supported.
 
-## Linux
-Download the file for your distro from the Releases page (64-bit Intel/AMD only). Open a terminal in the folder where you saved it. The file name starts with `Remember` (it may contain a space or a dot, so use the `*` as shown).
+Download from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) the file for your distro:
 
-**Ubuntu 22.04+, Debian 12+, Linux Mint, Pop!_OS (.deb)**
+| Your distro | Download |
+|---|---|
+| Ubuntu, Debian, Linux Mint, Pop!_OS | the **`.deb`** file |
+| Fedora, openSUSE | the **`.rpm`** file |
+| Arch, Manjaro, Omarchy, anything else | the **`.AppImage`** file |
+
+### With the mouse
+- **`.deb` / `.rpm`:** double-click the file. Your software installer opens; click **Install**.
+- **`.AppImage`:** right-click the file -> **Properties** -> **Permissions** -> tick **Allow executing as a program**, then double-click it. (On Arch you also need the `fuse2` package.)
+
+Then start **Remember Me** from your app menu, or search for `rm`.
+
+### From the command line
+Open a terminal in the folder where you saved the file. The file name starts with `Remember` (it may contain a space or a dot, so keep the `*`).
+
+**Ubuntu, Debian, Mint, Pop!_OS:**
 ```
 sudo apt install ./Remember*.deb
 ```
-Remove it: `sudo apt remove remember-me`
-
-**Fedora, openSUSE (.rpm)**
+**Fedora, openSUSE:**
 ```
 sudo dnf install ./Remember*.rpm
 ```
-Remove it: `sudo dnf remove remember-me`
-
-**Arch, Manjaro, Omarchy and everything else (.AppImage)**
+**Arch, Manjaro, Omarchy and others:**
 ```
 chmod +x ./Remember*.AppImage
 ./Remember*.AppImage
 ```
-- Needs the `fuse2` package on Arch (`sudo pacman -S fuse2`). If FUSE is not available, run `./Remember*.AppImage --appimage-extract-and-run`.
-- Remove it by deleting the file.
+On Arch: `sudo pacman -S fuse2` first. If FUSE is not available: `./Remember*.AppImage --appimage-extract-and-run`.
 
-After a `.deb`/`.rpm` install, start it from your app menu or with the command `remember-me`. If you turned on "Start with the computer", also delete `~/.config/autostart/` entries for Remember Me when you remove it.
+**Download and install in one go** (no browser needed; pick the line block for your distro):
+```
+# Ubuntu / Debian / Mint / Pop!_OS
+curl -s https://api.github.com/repos/momenkamalx/remember-me-/releases/latest | grep -o 'https://[^"]*\.deb' | head -1 | xargs curl -L -o remember-me.deb
+sudo apt install ./remember-me.deb
 
-Status: the `.deb` was checked by installing and removing it on Ubuntu. The `.rpm` and `.AppImage` commands are not tested yet.
+# Fedora / openSUSE
+curl -s https://api.github.com/repos/momenkamalx/remember-me-/releases/latest | grep -o 'https://[^"]*\.rpm' | head -1 | xargs curl -L -o remember-me.rpm
+sudo dnf install ./remember-me.rpm
 
-Search for it in your launcher with `rm`, `remember` or `reminder`.
+# Arch / Manjaro / Omarchy / others (AppImage)
+curl -s https://api.github.com/repos/momenkamalx/remember-me-/releases/latest | grep -o 'https://[^"]*\.AppImage' | head -1 | xargs curl -L -o remember-me.AppImage
+chmod +x remember-me.AppImage
+./remember-me.AppImage
+```
+After a `.deb` or `.rpm` install you can also start it with the command `remember-me`.
 
-Good to know:
-- **Tray icon:** GNOME hides tray icons unless you install the *AppIndicator* extension (`gnome-shell-extension-appindicator`; Ubuntu includes it). Without it, closing the window hides the app: start it again from your app menu to bring the window back. Reminders keep working.
-- **Hotkey on Wayland:** `Alt+X` may not work. Add a custom keyboard shortcut in your system settings that runs `remember-me` (starting it again just shows the window). On Hyprland/Omarchy, add a line such as `bind = SUPER ALT, R, exec, remember-me` to your Hyprland bindings.
-- **Sound** needs the common GStreamer plugins (`gstreamer1.0-plugins-good`), which most desktops already have.
-- The app starts in X11 (XWayland) mode when available, so the reminder popup can be placed in the corner and stay on top.
-- Tested on a virtual X11 desktop with a normal window manager and with a tiling one (i3). **Not yet tested** on real GNOME, KDE or Hyprland.
+**Remove it:**
+- Ubuntu / Debian / Mint / Pop!_OS: `sudo apt remove remember-me`
+- Fedora / openSUSE: `sudo dnf remove remember-me`
+- AppImage: delete the file.
+
+If you turned on "Start with the computer", also delete the Remember Me entry in `~/.config/autostart/`.
+
+### Linux tips
+- **No tray icon on GNOME?** GNOME hides tray icons unless the *AppIndicator* extension is installed (`gnome-shell-extension-appindicator`; Ubuntu includes it). Without it, closing the window hides the app: open it again from your app menu. Reminders keep working.
+- **Alt+X does nothing on Wayland (Hyprland, Omarchy, GNOME)?** Global hotkeys are blocked there. Instead add a shortcut in your system's keyboard settings that runs `remember-me` (running it again just shows the window). On Hyprland / Omarchy add a line such as `bind = SUPER ALT, R, exec, remember-me` to your key bindings.
+- **Using the AppImage?** Put it where the system can find it first, so the command `remember-me` exists:
+  ```
+  mkdir -p ~/.local/bin
+  mv ./Remember*.AppImage ~/.local/bin/remember-me
+  chmod +x ~/.local/bin/remember-me
+  ```
+  Then use `~/.local/bin/remember-me` in your shortcut if `~/.local/bin` is not on your PATH.
+- **Notifications:** on Linux a reminder is a normal system notification. Buttons (Done, Snooze, Open) appear where your notification service supports them. With Do Not Disturb on, the banner may be hidden, but the sound still plays. If no notification service is running, the app opens its own popup instead.
+- **No sound?** On Linux the sound is played with your system audio tools: `pw-play` (PipeWire), `paplay`, `aplay`, `ffplay` or `mpv`, whichever is installed. If you hear nothing, install one, for example `sudo pacman -S pipewire` (Arch) or `sudo apt install pulseaudio-utils` (Ubuntu / Debian).
+
+## Using it
+1. Open the app, type what you want to remember, pick a date and time, and press **Add reminder**.
+2. When it is due you get an alert with a sound (a popup on Windows, a system notification on Linux). Press **Done**, **Snooze**, or **Open** (if the reminder has a link).
+3. Open **Settings** to change the sound, volume, repeat count, hotkey, and whether it starts with your computer.
+4. Closing the window hides it to the tray; reminders keep working. To fully quit, right-click the tray icon -> **Quit**. Quitting stops reminders until you start the app again.
+
+Your reminders are stored in a small database on your computer:
+- Windows: `%APPDATA%\com.rememberme.app\`
+- Linux: `~/.local/share/com.rememberme.app/`
+
+## Browser companion (optional)
+A small add-on for Firefox, Chrome, Brave and Edge that sends reminders from your browser to the app. **The Remember Me? app must be installed and running.**
+
+- Right-click selected text, a link, or a page: **Remind me about this**
+- **Read this page later** in one click (in 1 hour, tonight, tomorrow). The link is saved, and the reminder popup gets an **Open** button.
+- Quick add from the toolbar button or with `Alt+Shift+X`
+
+**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: search for **Remember Me? (browser companion)** and click **Add to Firefox**.
+
+**Chrome, Brave, Edge:** download `remember-me-chrome-extension.zip` from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and install it in developer mode (a Chrome Web Store version will come later). Step-by-step instructions are in [`browser-extension/README.md`](browser-extension/README.md).
 
 ## Known limits
-- The popup can't draw over games in true exclusive fullscreen. The sound still plays.
-- Windows can't have `?` in file names, so installer and shortcut are named "Remember Me".
+- On Windows the popup cannot draw over games in true exclusive fullscreen. The sound still plays.
+- Windows does not allow `?` in file names, so the installer and shortcut are named "Remember Me".
+- The Windows installer is not code-signed, so Windows shows a warning the first time.
+- Tested on Windows and on virtual Linux desktops. Not yet tested on real GNOME, KDE or Hyprland.
 
-## Roadmap
-1. Chrome Web Store listing and Firefox approval
-2. Linux testing and packaging
-3. Android
+## Coming next
+- Chrome Web Store listing
+- Android

@@ -1,6 +1,8 @@
 mod api;
 mod api_core;
 mod db;
+#[cfg(target_os = "linux")]
+mod linux_alert;
 
 use db::{Db, Reminder};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -272,6 +274,21 @@ fn set_hotkey(app: AppHandle, db: tauri::State<Db>, hotkey: String) -> Result<()
     db.set_setting("hotkey", &hotkey).map_err(|e| e.to_string())
 }
 
+/// Linux only: plays/stops the reminder sound with the system's audio tools.
+#[tauri::command]
+fn native_sound(db: tauri::State<Db>, action: String) {
+    #[cfg(target_os = "linux")]
+    {
+        if action == "test" {
+            linux_alert::test_sound(&db);
+        } else {
+            linux_alert::stop_test();
+        }
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = (db, action);
+}
+
 #[tauri::command]
 fn quit_app(app: AppHandle) {
     app.exit(0);
@@ -319,7 +336,8 @@ pub fn run() {
             get_custom_sound,
             set_autostart,
             set_hotkey,
-            quit_app
+            quit_app,
+            native_sound
         ])
         .on_window_event(|window, event| {
             // Close button hides to tray instead of quitting.
@@ -415,6 +433,14 @@ pub fn run() {
                     if !items.is_empty() {
                         for (id, title) in items {
                             let link = handle.state::<Db>().get_link(id).unwrap_or_default();
+                            // Linux: desktop notification + system sound; popup window only as a fallback
+                            #[cfg(target_os = "linux")]
+                            {
+                                if !linux_alert::alert(&handle, id, title.clone(), link.clone()) {
+                                    open_popup(&handle, id, title, link);
+                                }
+                            }
+                            #[cfg(not(target_os = "linux"))]
                             open_popup(&handle, id, title, link);
                         }
                         let _ = handle.emit("changed", ());

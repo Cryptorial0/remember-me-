@@ -6,59 +6,100 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Remember Me?</h1>
-  <form id="f">
-    <input id="title" placeholder="Remind me about..." autocomplete="off" required>
-    <input id="link" placeholder="Link (optional, https://...)" autocomplete="off">
-    <div class="row">
-      <input id="when" type="datetime-local" required>
-      <select id="repeat">
-        <option value="none">No repeat</option>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-      </select>
+  <div class="header">
+    <h1>Remember Me?</h1>
+    <nav class="tabs">
+      <button type="button" class="tab-btn active" data-tab="tab-reminders" id="tab-nav-reminders">
+        Reminders <span id="reminders-badge" class="badge" hidden>0</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-add" id="tab-nav-add">
+        + New
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-settings" id="tab-nav-settings">
+        Settings
+      </button>
+    </nav>
+  </div>
+
+  <div id="tab-reminders" class="tab-pane active">
+    <div class="search-bar">
+      <input id="search" type="search" placeholder="Search reminders..." autocomplete="off">
     </div>
-    <div class="chips">
-      <button type="button" data-m="10">+10m</button>
-      <button type="button" data-m="60">+1h</button>
-      <button type="button" data-m="tom">Tomorrow 9:00</button>
+    <div class="filter-chips">
+      <button type="button" class="filter-btn active" data-filter="all">All <span class="f-cnt" id="cnt-all">0</span></button>
+      <button type="button" class="filter-btn" data-filter="upcoming">Upcoming <span class="f-cnt" id="cnt-upcoming">0</span></button>
+      <button type="button" class="filter-btn" data-filter="overdue">Overdue <span class="f-cnt" id="cnt-overdue">0</span></button>
+      <button type="button" class="filter-btn" data-filter="done">Done <span class="f-cnt" id="cnt-done">0</span></button>
     </div>
-    <div class="row">
-      <button class="primary" id="save" type="submit" style="flex:1">Add reminder</button>
-      <button type="button" id="cancel" hidden>Cancel edit</button>
+    <ul id="list"></ul>
+    <div id="empty-state" class="empty-state" hidden></div>
+  </div>
+
+  <div id="tab-add" class="tab-pane" hidden>
+    <form id="f">
+      <input id="title" placeholder="Remind me about..." autocomplete="off" required>
+      <input id="link" placeholder="Link (optional, https://...)" autocomplete="off">
+      <div class="row">
+        <input id="when-date" type="date" required placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" title="Date">
+        <select id="repeat">
+          <option value="none">No repeat</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="row time-row">
+        <select id="when-h" aria-label="Hour"></select>
+        <span>:</span>
+        <select id="when-m" aria-label="Minute"></select>
+        <select id="when-ap" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
+      </div>
+      <div class="chips">
+        <button type="button" data-m="10">+10m</button>
+        <button type="button" data-m="60">+1h</button>
+        <button type="button" data-m="tom">Tomorrow 9:00</button>
+      </div>
+      <div class="row">
+        <button class="primary" id="save" type="submit" style="flex:1">Add reminder</button>
+        <button type="button" id="cancel" hidden>Cancel edit</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="tab-settings" class="tab-pane" hidden>
+    <div class="settings-card">
+      <label>Hotkey (click the box, then press the keys)
+        <input id="s-hotkey" readonly>
+      </label>
+      <div class="d" id="s-hotkey-note" hidden>On Linux with Wayland (Hyprland, Omarchy, GNOME) a global hotkey may not work. In your system's keyboard settings, add a shortcut that runs <b>remember-me</b>; running it again just shows this window.</div>
+      <label>Sound
+        <select id="s-sound">
+          <option value="none">Silent</option>
+          <option value="chime">Chime</option>
+          <option value="bell">Bell</option>
+          <option value="beep">Beep</option>
+          <option value="digital">Digital</option>
+          <option value="soft">Soft</option>
+          <option value="custom">Upload a file</option>
+        </select>
+      </label>
+      <label>Volume <input id="s-vol" type="range" min="0" max="1" step="0.05"></label>
+      <label>Repeat sound <input id="s-rep" type="number" min="0" max="10" style="width:60px"> times, every 6s (0 = until dismissed)</label>
+      <label>Upload a file (mp3/wav/ogg, max 2 MB)
+        <input id="s-file" type="file" accept="audio/*">
+      </label>
+      <div class="d">Current file: <span id="s-fname">none</span></div>
+      <label>Browser extension: port <b id="s-port">-</b>, secret token
+        <input id="s-token" readonly>
+      </label>
+      <button type="button" id="s-copy">Copy token</button>
+      <label class="inline"><input id="s-auto" type="checkbox"> Start with the computer</label>
+      <div class="btns">
+        <button type="button" id="s-test">Test sound</button>
+        <button type="button" id="s-stop">Stop</button>
+      </div>
     </div>
-  </form>
-  <details id="settings">
-    <summary>Settings</summary>
-    <label>Hotkey (click the box, then press the keys)
-      <input id="s-hotkey" readonly>
-    </label>
-    <label>Sound
-      <select id="s-sound">
-        <option value="none">Silent</option>
-        <option value="chime">Chime</option>
-        <option value="bell">Bell</option>
-        <option value="beep">Beep</option>
-        <option value="digital">Digital</option>
-        <option value="soft">Soft</option>
-        <option value="custom">Upload a file</option>
-      </select>
-    </label>
-    <label>Volume <input id="s-vol" type="range" min="0" max="1" step="0.05"></label>
-    <label>Repeat sound <input id="s-rep" type="number" min="0" max="10" style="width:60px"> times, every 6s (0 = until dismissed)</label>
-    <label>Upload a file (mp3/wav/ogg, max 2 MB)
-      <input id="s-file" type="file" accept="audio/*">
-    </label>
-    <div class="d">Current file: <span id="s-fname">none</span></div>
-    <label>Browser extension: port <b id="s-port">-</b>, secret token
-      <input id="s-token" readonly>
-    </label>
-    <button type="button" id="s-copy">Copy token</button>
-    <label class="inline"><input id="s-auto" type="checkbox"> Start with the computer</label>
-    <div class="btns"><button type="button" id="s-test">Test sound</button><button type="button" id="s-stop">Stop</button></div>
-  </details>
-  <ul id="list"></ul>
+  </div>
 
   <div id="quit" class="overlay" hidden>
     <div class="modal">

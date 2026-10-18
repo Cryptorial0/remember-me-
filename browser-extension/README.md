@@ -3,12 +3,12 @@
 A small helper that sends reminders from your browser to the **Remember Me?** desktop app, like the browser helper of a download manager. **The desktop app must be installed and running**; the extension does nothing without it.
 
 ## Where to get it
-| Browser | Status | How to install |
-|---|---|---|
-| Firefox | Submitted to Mozilla, **awaiting review** | When approved it installs from the Firefox Add-ons page (link will be added here). Until then: [temporary install](#firefox-until-it-is-approved). |
-| Chrome, Brave, Edge | Chrome Web Store listing planned for later | For now: [developer-mode install](#chrome--brave--edge-developer-mode). |
+| Browser | How to install |
+|---|---|
+| Firefox | **Approved by Mozilla.** On the Firefox Add-ons site search for **Remember Me? (browser companion)** and click **Add to Firefox**. |
+| Chrome, Brave, Edge | Chrome Web Store listing planned for later. For now: [developer-mode install](#chrome--brave--edge-developer-mode). |
 
-The extension files are attached to every [GitHub Release](../../releases): `remember-me-chrome-extension.zip` and `remember-me-firefox-extension.zip`. (If you downloaded the whole repo, use the `chrome` and `firefox` folders here instead.)
+The Chrome extension zip is attached to every [GitHub Release](../../releases) as `remember-me-chrome-extension.zip`. (If you downloaded the whole repo, use the `chrome` folder here instead.)
 
 ## What it does
 1. **Right-click reminder:** select text, a link, or anywhere on a page, right-click, choose **Remind me about this ...**. A small window opens, pre-filled. Pick a time and save.
@@ -40,16 +40,12 @@ Good to know:
 - If the toolbar icon is hidden, pin it from the puzzle-piece menu.
 - If `Alt+Shift+X` does nothing, set it at `chrome://extensions/shortcuts`.
 
-## Firefox (until it is approved)
-The Firefox version is waiting for Mozilla's review. Until then you can load it temporarily:
-1. Download and extract `remember-me-firefox-extension.zip`.
-2. Open `about:debugging#/runtime/this-firefox`.
-3. Click **Load Temporary Add-on...** and choose the `manifest.json` file in the extracted folder.
-4. Do the first-time setup above.
-
-A temporary add-on disappears when Firefox restarts, so load it again after a restart. Once Mozilla approves it, install from the Firefox Add-ons page and it stays permanently and updates itself.
+## Firefox
+Install from the Firefox Add-ons site (see the table at the top); it stays installed and updates itself. Then do the first-time setup above.
 
 If it says it cannot find the app, open `about:addons` -> the extension -> **Permissions** and allow access to `127.0.0.1`.
+
+Only for testing a development copy: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on...** and choose `firefox/manifest.json`. A temporary add-on disappears when Firefox restarts.
 
 ## Troubleshooting
 - **"Remember Me? is not running":** start the desktop app, then try again.
