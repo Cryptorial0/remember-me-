@@ -35,7 +35,7 @@ A small add-on for Firefox, Chrome, Brave and Edge that sends reminders from you
 - **Read this page later** in one click (in 1 hour, tonight, tomorrow). The link is saved, and the reminder popup gets an **Open** button.
 - Quick add from the toolbar button or with `Alt+Shift+X`
 
-**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: search for **Remember Me? (browser companion)** and click **Add to Firefox**.
+**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: click here [Remember Me?](https://addons.mozilla.org/en-US/firefox/addon/remember-me-browser-companion/) OR search for **Remember Me? (browser companion)** and click **Add to Firefox**.
 
 **Chrome, Brave, Edge:** download `remember-me-chrome-extension.zip` from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and install it in developer mode (a Chrome Web Store version will come later). Step-by-step instructions are in [`browser-extension/README.md`](browser-extension/README.md).
 
