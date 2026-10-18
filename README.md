@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/14967e52-6cfb-4ff1-b24a-50e5aa5c1415" alt="Remember Me Icon" width="140" height="140">
+</p>
+
 # Remember Me?
 
-A small, private reminder app for Windows and Linux. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
+A small private reminder app for Windows and Linux. Type what you want to be reminded about, pick a date and time, and a popup with a sound appears when it is due. Everything stays on your computer: no account, no cloud, no internet needed.
 
 ## Features
 - Reminders with a date, a time, and an optional repeat (daily, weekly, monthly)
@@ -12,7 +16,33 @@ A small, private reminder app for Windows and Linux. Type what you want to be re
 - Lives in the system tray, starts with your computer (you can turn this off), asks before quitting
 - Search for it by typing **rm**, **remember** or **reminder** in your Start menu or app launcher
 - Browser companion for Firefox, Chrome, Brave and Edge (optional, see below)
-- Private: your reminders are stored only on your computer
+- Your reminders are stored only on your computer
+
+## HOW TO USE
+1. Open the app, type what you want to remember, pick a date and time, and press **Add reminder**.
+2. When it is due you get an alert with a sound (a popup on Windows, a system notification on Linux). Press **Done**, **Snooze**, or **Open** (if the reminder has a link).
+3. Open **Settings** to change the sound, volume, repeat count, hotkey, and whether it starts with your computer.
+4. Closing the window hides it to the tray; reminders keep working. To fully quit, right-click the tray icon -> **Quit**. Quitting stops reminders until you start the app again.
+
+Your reminders are stored in a small database on your computer:
+- Windows: `%APPDATA%\com.rememberme.app\`
+- Linux: `~/.local/share/com.rememberme.app/`
+
+## Browser companion (optional)
+A small add-on for Firefox, Chrome, Brave and Edge that sends reminders from your browser to the app. **The Remember Me? app must be installed and running.**
+
+- Right-click selected text, a link, or a page: **Remind me about this**
+- **Read this page later** in one click (in 1 hour, tonight, tomorrow). The link is saved, and the reminder popup gets an **Open** button.
+- Quick add from the toolbar button or with `Alt+Shift+X`
+
+**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: search for **Remember Me? (browser companion)** and click **Add to Firefox**.
+
+**Chrome, Brave, Edge:** download `remember-me-chrome-extension.zip` from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and install it in developer mode (a Chrome Web Store version will come later). Step-by-step instructions are in [`browser-extension/README.md`](browser-extension/README.md).
+
+## limits(for now)
+- On Windows the popup cannot draw over games in true exclusive fullscreen. The sound still plays.
+- The Windows installer is not code-signed, so Windows shows a warning the first time.
+- Tested on Windows and on virtual Linux desktops. Not yet tested on real GNOME, KDE or Hyprland.
 
 ## Install on Windows (10 and 11)
 1. Open the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and download the file ending in **`x64-setup.exe`** from the newest release.
@@ -109,33 +139,6 @@ If you turned on "Start with the computer", also delete the Remember Me entry in
 - **Notifications:** on Linux a reminder is a normal system notification. Buttons (Done, Snooze, Open) appear where your notification service supports them. With Do Not Disturb on, the banner may be hidden, but the sound still plays. If no notification service is running, the app opens its own popup instead.
 - **No sound?** On Linux the sound is played with your system audio tools: `pw-play` (PipeWire), `paplay`, `aplay`, `ffplay` or `mpv`, whichever is installed. If you hear nothing, install one, for example `sudo pacman -S pipewire` (Arch) or `sudo apt install pulseaudio-utils` (Ubuntu / Debian).
 
-## Using it
-1. Open the app, type what you want to remember, pick a date and time, and press **Add reminder**.
-2. When it is due you get an alert with a sound (a popup on Windows, a system notification on Linux). Press **Done**, **Snooze**, or **Open** (if the reminder has a link).
-3. Open **Settings** to change the sound, volume, repeat count, hotkey, and whether it starts with your computer.
-4. Closing the window hides it to the tray; reminders keep working. To fully quit, right-click the tray icon -> **Quit**. Quitting stops reminders until you start the app again.
-
-Your reminders are stored in a small database on your computer:
-- Windows: `%APPDATA%\com.rememberme.app\`
-- Linux: `~/.local/share/com.rememberme.app/`
-
-## Browser companion (optional)
-A small add-on for Firefox, Chrome, Brave and Edge that sends reminders from your browser to the app. **The Remember Me? app must be installed and running.**
-
-- Right-click selected text, a link, or a page: **Remind me about this**
-- **Read this page later** in one click (in 1 hour, tonight, tomorrow). The link is saved, and the reminder popup gets an **Open** button.
-- Quick add from the toolbar button or with `Alt+Shift+X`
-
-**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: search for **Remember Me? (browser companion)** and click **Add to Firefox**.
-
-**Chrome, Brave, Edge:** download `remember-me-chrome-extension.zip` from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and install it in developer mode (a Chrome Web Store version will come later). Step-by-step instructions are in [`browser-extension/README.md`](browser-extension/README.md).
-
-## Known limits
-- On Windows the popup cannot draw over games in true exclusive fullscreen. The sound still plays.
-- Windows does not allow `?` in file names, so the installer and shortcut are named "Remember Me".
-- The Windows installer is not code-signed, so Windows shows a warning the first time.
-- Tested on Windows and on virtual Linux desktops. Not yet tested on real GNOME, KDE or Hyprland.
-
 ## Coming next
-- Chrome Web Store listing
-- Android
+- Official Chrome Web Store listing
+- Android (maybe)
