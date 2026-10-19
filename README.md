@@ -35,7 +35,7 @@ A small add-on for Firefox, Chrome, Brave and Edge that sends reminders from you
 - **Read this page later** in one click (in 1 hour, tonight, tomorrow). The link is saved, and the reminder popup gets an **Open** button.
 - Quick add from the toolbar button or with `Alt+Shift+X`
 
-**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: click here [Remember Me?](https://addons.mozilla.org/en-US/firefox/addon/remember-me-browser-companion/) OR search for **Remember Me? (browser companion)** and click **Add to Firefox**.
+**Firefox:** approved by Mozilla. Install it from the Firefox Add-ons site: search for **Remember Me? (browser companion)** and click **Add to Firefox**.
 
 **Chrome, Brave, Edge:** download `remember-me-chrome-extension.zip` from the [Releases page](https://github.com/momenkamalx/remember-me-/releases) and install it in developer mode (a Chrome Web Store version will come later). Step-by-step instructions are in [`browser-extension/README.md`](browser-extension/README.md).
 
@@ -127,6 +127,7 @@ After a `.deb` or `.rpm` install you can also start it with the command `remembe
 If you turned on "Start with the computer", also delete the Remember Me entry in `~/.config/autostart/`.
 
 ### Linux tips
+- **Started it from a terminal?** You can close the terminal: the app detaches itself and keeps running (and your prompt comes back right away). To quit it, use the tray icon -> **Quit**, or run `pkill -x remember-me`. To keep it attached to the terminal, for example to see error messages, start it with `RM_FOREGROUND=1 remember-me`.
 - **No tray icon on GNOME?** GNOME hides tray icons unless the *AppIndicator* extension is installed (`gnome-shell-extension-appindicator`; Ubuntu includes it). Without it, closing the window hides the app: open it again from your app menu. Reminders keep working.
 - **Alt+X does nothing on Wayland (Hyprland, Omarchy, GNOME)?** Global hotkeys are blocked there. Instead add a shortcut in your system's keyboard settings that runs `remember-me` (running it again just shows the window). On Hyprland / Omarchy add a line such as `bind = SUPER ALT, R, exec, remember-me` to your key bindings.
 - **Using the AppImage?** Put it where the system can find it first, so the command `remember-me` exists:

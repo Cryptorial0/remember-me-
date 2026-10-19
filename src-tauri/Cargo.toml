@@ -1,6 +1,6 @@
 [package]
 name = "remember-me"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 [lib]
@@ -25,4 +25,5 @@ tauri-plugin-single-instance = "2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 gtk = "0.18"
+libc = "0.2"
 notify-rust = { version = "4", default-features = false, features = ["z"] }
