@@ -59,18 +59,46 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
 });
 
 // ---------- Reminder Form ----------
-// Date + hour/minute/AM-PM dropdowns (a single datetime-local field has no time picker on Linux)
+let use24h = false;
+
 function fillTimeSelects() {
-  const h = $('when-h'), m = $('when-m');
-  for (let i = 1; i <= 12; i++) { const o = document.createElement('option'); o.value = i; o.textContent = i; h.append(o); }
-  for (let i = 0; i < 60; i++) { const o = document.createElement('option'); o.value = i; o.textContent = pad(i); m.append(o); }
+  const h = $('when-h'), m = $('when-m'), ap = $('when-ap');
+  h.innerHTML = '';
+  m.innerHTML = '';
+  if (use24h) {
+    for (let i = 0; i < 24; i++) {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = pad(i);
+      h.append(o);
+    }
+    if (ap) ap.hidden = true;
+  } else {
+    for (let i = 1; i <= 12; i++) {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = i;
+      h.append(o);
+    }
+    if (ap) ap.hidden = false;
+  }
+  for (let i = 0; i < 60; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = pad(i);
+    m.append(o);
+  }
 }
 
 function setWhen(d) {
   $('when-date').value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const h24 = d.getHours();
-  $('when-ap').value = h24 >= 12 ? 'PM' : 'AM';
-  $('when-h').value = String(h24 % 12 || 12);
+  if (use24h) {
+    $('when-h').value = String(h24);
+  } else {
+    $('when-ap').value = h24 >= 12 ? 'PM' : 'AM';
+    $('when-h').value = String(h24 % 12 || 12);
+  }
   $('when-m').value = String(d.getMinutes());
 }
 
@@ -78,9 +106,13 @@ function setWhen(d) {
 function getWhen() {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($('when-date').value.trim());
   if (!m) return null;
-  let h = Number($('when-h').value) % 12;
-  if ($('when-ap').value === 'PM') h += 12;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), h, Number($('when-m').value), 0, 0);
+  let h = Number($('when-h').value);
+  if (!use24h) {
+    h = h % 12;
+    if ($('when-ap').value === 'PM') h += 12;
+  }
+  const min = Number($('when-m').value);
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), h, min, 0, 0);
 }
 
 function setDefaultTime() {
@@ -110,10 +142,9 @@ function startEdit(r) {
 
 document.querySelectorAll('.chips button').forEach((b) =>
   b.addEventListener('click', () => {
-    const m = b.dataset.m;
-    const d = new Date();
-    if (m === 'tom') { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
-    else d.setMinutes(d.getMinutes() + Number(m));
+    const m = Number(b.dataset.m);
+    const d = getWhen() || new Date();
+    d.setMinutes(d.getMinutes() + m);
     setWhen(d);
   })
 );
@@ -234,7 +265,7 @@ function renderList() {
 
     const d = document.createElement('div');
     d.className = 'd';
-    const dateStr = new Date(r.due * 1000).toLocaleString();
+    const dateStr = new Date(r.due * 1000).toLocaleString(undefined, { hour12: !use24h });
     const rel = formatRelativeTime(r.due, nowS, r.done);
     const rep = r.repeat !== 'none' ? ' · ' + r.repeat : '';
     d.innerHTML = `<span>${escapeHtml(dateStr)}</span> <span class="rel-badge ${r.due < nowS && !r.done ? 'over' : ''}">(${escapeHtml(rel)})</span>${escapeHtml(rep)}`;
@@ -287,7 +318,7 @@ async function refresh() {
 
 // ---------- Settings ----------
 const sSound = $('s-sound'), sVol = $('s-vol'), sRep = $('s-rep'), sFile = $('s-file'),
-      sName = $('s-fname'), sAuto = $('s-auto'), sHot = $('s-hotkey');
+      sName = $('s-fname'), sAuto = $('s-auto'), sHot = $('s-hotkey'), s24h = $('s-24h');
 
 async function loadSettings() {
   const s = await invoke('get_settings');
@@ -296,10 +327,27 @@ async function loadSettings() {
   sRep.value = s.repeats ?? '0';
   sName.textContent = s.custom_name || 'none';
   sAuto.checked = s.autostart !== '0';
+  s24h.checked = s.time_format === '24h';
+  if (use24h !== s24h.checked) {
+    const cur = getWhen();
+    use24h = s24h.checked;
+    fillTimeSelects();
+    if (cur) setWhen(cur);
+    renderList();
+  }
   $('s-port').textContent = s.api_port || 'starting...';
   $('s-token').value = s.api_token || '';
   sHot.value = s.hotkey || 'Alt+X';
 }
+
+s24h.onchange = () => {
+  const cur = getWhen();
+  use24h = s24h.checked;
+  invoke('set_setting', { key: 'time_format', value: use24h ? '24h' : '12h' }).catch(() => {});
+  fillTimeSelects();
+  if (cur) setWhen(cur);
+  renderList();
+};
 
 sSound.onchange = () => invoke('set_setting', { key: 'sound', value: sSound.value });
 sVol.onchange = () => invoke('set_setting', { key: 'volume', value: sVol.value });

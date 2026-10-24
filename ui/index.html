@@ -55,9 +55,12 @@
         <select id="when-ap" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
       </div>
       <div class="chips">
+        <button type="button" data-m="1">+1m</button>
         <button type="button" data-m="10">+10m</button>
         <button type="button" data-m="60">+1h</button>
-        <button type="button" data-m="tom">Tomorrow 9:00</button>
+        <button type="button" data-m="-60">-1h</button>
+        <button type="button" data-m="-10">-10m</button>
+        <button type="button" data-m="-1">-1m</button>
       </div>
       <div class="row">
         <button class="primary" id="save" type="submit" style="flex:1">Add reminder</button>
@@ -93,6 +96,7 @@
         <input id="s-token" readonly>
       </label>
       <button type="button" id="s-copy">Copy token</button>
+      <label class="inline"><input id="s-24h" type="checkbox"> Use 24h format</label>
       <label class="inline"><input id="s-auto" type="checkbox"> Start with the computer</label>
       <div class="btns">
         <button type="button" id="s-test">Test sound</button>

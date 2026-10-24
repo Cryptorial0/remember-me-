@@ -222,7 +222,7 @@ fn get_settings(db: tauri::State<Db>) -> Result<std::collections::HashMap<String
 
 #[tauri::command]
 fn set_setting(db: tauri::State<Db>, key: String, value: String) -> Result<(), String> {
-    const OK: [&str; 5] = ["sound", "volume", "repeats", "custom_sound", "custom_name"];
+    const OK: [&str; 6] = ["sound", "volume", "repeats", "custom_sound", "custom_name", "time_format"];
     if !OK.contains(&key.as_str()) || value.len() > 3_000_000 {
         return Err("rejected".into());
     }
